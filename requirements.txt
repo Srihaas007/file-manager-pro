@@ -1,0 +1,7 @@
+PyQt5==5.15.9
+send2trash==1.8.0
+Pillow==9.5.0
+tqdm==4.65.0
+cryptography==41.0.4
+watchdog==3.0.0
+plyer==2.1.1

@@ -1,0 +1,349 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Booking;
+use App\Models\Client;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use App\Models\Reasons;
+
+class BookingController extends Controller
+{
+    public function store(Request $request)
+    {
+        try {
+           /* // Get the authenticated client from the request
+            $authenticatedClient = $request->input('authenticated_client');
+
+            if (!$authenticatedClient) {
+                return response()->json(['message' => 'Unauthorized: No authenticated client found.'], 401);
+            }
+
+            // Validate incoming request data
+            $validatedData = $this->validate($request, [
+                'client_id' => [
+                    'required',
+                    'integer',
+                    function ($attribute, $value, $fail) use ($authenticatedClient) {
+                        // Check if client_id matches the authenticated client's id
+                        if ($value !== $authenticatedClient->client_id) {
+                            $fail('Unauthorized: client_id does not match authenticated client.');
+                        }
+                    }
+                ],*/
+                $validatedData = $this->validate($request, [
+                'client_id' => 'required|integer',
+                'dateOfJob' => 'required|date',
+                'timeOfJob' => 'required|date_format:H:i',
+                'startTime' => 'required|date_format:H:i',
+                'finishTime' => 'required|date_format:H:i|after:startTime',
+                'Language1ID' => 'required|string',
+                'BookingAddressID' => 'required|string',
+                'NoOfHoursBooked' => 'required|numeric|min:0',
+                'HouseNo' => 'nullable|string',
+                'BookingAddress1' => 'nullable|string',
+                'BookingAddress2' => 'nullable|string',
+                'BookingAddress3' => 'nullable|string',
+                'BookingAddressPostCode' => 'nullable|string',
+                'CostCentreCode' => 'nullable|string',
+                'EndUserEmail' => 'required|email',
+                'EndUserMobile' => 'required|integer|regex:/^\d{10,15}$/',
+                'BookingPersonEmail' => 'required|email',
+                'contactPersonEmail' => 'required|email',
+                'ClientCaller' => 'required|string',
+                'ClientClientName' => 'required|string',
+                'ContactNumber' => 'required|integer|regex:/^\d{10,15}$/',
+                'Officer' => 'required|string',
+                'ServiceID' => 'required|string',
+                'GenderOfInterpreter' => 'required|string',
+                'HealthSafetyHazzards' => 'required|string',
+                'BudgetHolderName' => 'required|string',
+                'BudgetHolderContact' => 'required|integer|regex:/^\d{10,15}$/',
+                'BudgetHolderEmail' => 'required|email',
+                'ClientJobReferenceNumber' => 'required|string',
+                'appointment' => 'required|integer|between:0,255',
+                'appointment_type' => 'required|integer|between:0,255',
+                'attendees' => 'required|integer|between:0,255',
+                'DeptOrTypeofCase' => 'required|string',
+                'AnySpecialInstructions' => 'required|string',
+                'OtherTrusts' => 'required|string',
+                'OtherNature' => 'required|string',
+                'TrustServices' => 'required|string',
+                'ReasonF2FInterpreterNeeded' => 'required|string',
+                'Specialty' => 'required|integer',
+                'is_aleady_worked' => 'required|string',
+                'NeedsClientAdminApproval' => 'required|string',
+                'TrustServices2' => 'required|string',
+                'SubOffice' => 'required|string',
+                'BookingNotes' => 'required|string',
+                'IsConfirmedBooking' => 'nullable|integer|in:-1,0',
+
+            ],
+            [
+                'client_id.exists' => 'The selected client_id is invalid.',
+            ]);
+
+
+
+            // generating a random 6-digit number for Booking_id
+            $bookingId = mt_rand(100000, 999999);
+            
+            // Add Booking_id to validated data
+            $validatedData['Booking_id'] = $bookingId;
+
+            // Create new booking instance
+            $booking = Booking::create($validatedData);
+
+            return response()->json(['message' => 'Booking created successfully', 'booking' => $booking], 201);
+
+        } catch (ValidationException $e) {
+            // If validation fails, capture the errors and respond accordingly
+            $errors = $e->errors();
+            return response()->json(['message' => 'Validation Error', 'errors' => $errors], 422);
+        } catch (\Exception $e) {
+            // Handle any other exceptions that may occur
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+   
+    public function updateCancelledByClient(Request $request)
+    {
+        try {
+            // Validate incoming request data
+            $validatedData = $request->validate([
+                'client_id' => 'required|exists:bookings,client_id',
+                'Booking_id' => 'required|exists:bookings,Booking_id',
+                'DateTimeCancelled' => 'required|date_format:Y-m-d\TH:i',  // date and time format like 2024-06-21T14:30
+                'CancelationReason' => 'required|integer',
+                'CancelationFullname' => 'required|string',
+                'CancelationContact' => 'required|string',
+                'ContactCancelled' => 'required|string',
+                'CancelationPersonEmail' => 'required|email',
+            ]);
+
+            // Fetch the booking record using client_id and Booking_id
+            $booking = Booking::where('client_id', $validatedData['client_id'])
+                ->where('Booking_id', $validatedData['Booking_id'])
+                ->firstOrFail();
+
+            // Fetch the cancellation reason and check if the usertype is Client
+            $reason = Reasons::where('id', $validatedData['CancelationReason'])
+                ->where('usertype', 1)
+                ->first();
+
+            if (!$reason) {
+                return response()->json(['message' => 'Invalid cancellation reason or usertype.'], 422);
+            }
+
+            // Check if the booking is confirmed
+            if ($booking->IsConfirmedBooking !== -1) {
+                return response()->json(['message' => 'Booking is not confirmed, cannot mark interpreter as did not attend.'], 422);
+            }
+
+            // Ensure the booking is not cancelled by client, agency, or interpreter
+            if ($booking->CancelledByClient !== 0) {
+                return response()->json(['message' => 'Booking is already cancelled by client.'], 422);
+            }
+            if ($booking->CancelledByUs == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Agency.'], 422);
+            }
+            if ($booking->CancelledByInterpreter == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Interpreter.'], 422);
+            }
+
+            // Update the booking record in the database
+            $booking->update([
+                'DateTimeCancelled' => $validatedData['DateTimeCancelled'],
+                'CancelationReason' => $validatedData['CancelationReason'],
+                'CancelationFullname' => $validatedData['CancelationFullname'],
+                'CancelationContact' => $validatedData['CancelationContact'],
+                'ContactCancelled' => $validatedData['ContactCancelled'],
+                'CancelationPersonEmail' => $validatedData['CancelationPersonEmail'],
+            ]);
+
+            // Send an EMAIL to the bookings team (email through SMTP)
+            // Mail::to('bookings_team@example.com')->send(new BookingCancelled($booking));
+
+            return response()->json(['message' => 'Updated as Cancelled by Client', 'booking' => $booking], 200);
+
+        } catch (ValidationException $e) {
+            // If validation fails, capture the errors and respond accordingly
+            $errors = $e->errors();
+            return response()->json(['message' => 'Validation Error', 'errors' => $errors], 422);
+        } catch (\Exception $e) {
+            // Handle any other exceptions that may occur
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+    public function updateCancelledByAgency(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'client_id' => 'required|exists:bookings,client_id',
+                'Booking_id' => 'required|exists:bookings,Booking_id',
+                'CancelationReason' => 'required|integer',
+                'CancelationNote' => 'required|string',
+            ]);
+
+          
+            // Fetch the booking record using client_id and Booking_id
+            $booking = Booking::where('client_id', $validatedData['client_id'])
+                ->where('Booking_id', $validatedData['Booking_id'])
+                ->firstOrFail();
+
+            // Fetch the cancellation reason and check if the usertype is Agency
+            $reason = Reasons::where('id', $validatedData['CancelationReason'])
+                ->first();
+
+            if (!$reason) {
+                return response()->json(['message' => 'Invalid cancellation reason or usertype.'], 422);
+            }
+
+            // Check if the booking is confirmed
+            if ($booking->IsConfirmedBooking !== -1) {
+                return response()->json(['message' => 'Booking is not confirmed, cannot mark interpreter as did not attend.'], 422);
+            }
+
+            // Ensure the booking is not cancelled by client, agency, or interpreter
+            if ($booking->CancelledByClient !== 0) {
+                return response()->json(['message' => 'Booking is already cancelled by client.'], 422);
+            }
+            if ($booking->CancelledByUs == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Agency.'], 422);
+            }
+            if ($booking->CancelledByInterpreter == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Interpreter.'], 422);
+            }
+            
+            $booking->update([
+                'CancelationReason' => $validatedData['CancelationReason'],
+                'CancelationNote' =>  $validatedData['CancelationNote'],
+            ]);
+
+            return response()->json(['message' => 'Updated as Cancelled by Agency', 'booking' => $booking], 200);
+
+// After updating the cancelaltion reason and cancelation note we also need to send an EMAIL to the bookings team.(EMAIL through SMTP)
+
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            return response()->json(['message' => 'Validation Error', 'errors' => $errors], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateCancelledByInterpreter(Request $request)
+    {
+        try {
+            $validatedData = $request->validate([
+                'client_id' => 'required|exists:bookings,client_id',
+                'Booking_id' => 'required|exists:bookings,Booking_id',
+                'CancelationReason' => 'required|integer',
+                
+            ]);
+            
+            // Fetch the booking record using client_id and Booking_id
+            $booking = Booking::where('client_id', $validatedData['client_id'])
+                ->where('Booking_id', $validatedData['Booking_id'])
+                ->firstOrFail();
+
+            // Fetch the cancellation reason and check if the usertype is Interpreter
+            $reason = Reasons::where('id', $validatedData['CancelationReason'])
+                ->where('usertype', 2)
+                ->first();
+
+            if (!$reason) {
+                return response()->json(['message' => 'Invalid cancellation reason or usertype.'], 422);
+            }
+
+            // Check if the booking is confirmed
+            if ($booking->IsConfirmedBooking !== -1) {
+                return response()->json(['message' => 'Booking is not confirmed, cannot mark interpreter as did not attend.'], 422);
+            }
+
+            // Ensure the booking is not cancelled by client, agency, or interpreter
+            if ($booking->CancelledByClient !== 0) {
+                return response()->json(['message' => 'Booking is already cancelled by client.'], 422);
+            }
+            if ($booking->CancelledByUs == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Agency.'], 422);
+            }
+            if ($booking->CancelledByInterpreter == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Interpreter.'], 422);
+            }
+            $booking->update([
+                 
+             
+                'CancelationReason' => $validatedData['CancelationReason'],
+                
+            ]);
+            return response()->json(['message' => 'Updated as cancelled by Interpreter ', 'booking' => $booking], 200);#
+
+// After updating that the booking is cancelledd by interpreter we also need to send an EMAIL to the bookings team.(EMAIL through SMTP)
+
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            return response()->json(['message' => 'Validation Error', 'errors' => $errors], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+    
+    public function interpreterDidNotAttend(Request $request)
+    {
+        try {
+            // Validate incoming request data
+            $validatedData = $request->validate([
+                'client_id' => 'required|exists:bookings,client_id',
+                'Booking_id' => 'required|exists:bookings,Booking_id',
+            ]);
+
+            // Fetch the booking record using client_id
+            $booking = Booking::where('client_id', $validatedData['client_id'])->firstOrFail();
+            $booking = Booking::where('Booking_id', $validatedData['Booking_id'])->firstOrFail();
+
+            // Check if the booking is confirmed
+            if ($booking->IsConfirmedBooking !== -1) {
+                return response()->json(['message' => 'Booking is not confirmed, cannot mark interpreter as did not attend.'], 422);
+            }
+
+            // Ensure the booking is not cancelled by client, agency, or interpreter
+            if ($booking->CancelledByClient !== 0) {
+                return response()->json(['message' => 'Booking is already cancelled by client.'], 422);
+            }
+            if ($booking->CancelledByUs == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Agency.'], 422);
+            }
+            if ($booking->CancelledByInterpreter == -1) {
+                return response()->json(['message' => 'Booking is already cancelled by Interpreter.'], 422);
+            }
+
+            // Validate if the current time is after the scheduled time of the job
+            $currentTime = now();
+            $scheduledDateTime = $booking->dateOfJob->setTimeFromTimeString($booking->timeOfJob);
+            
+            if ($currentTime < $scheduledDateTime) {
+                return response()->json(['message' => 'Cannot mark as DNA before the scheduled time of the job.'], 422);
+            }
+
+            // Update the booking record in the database
+            $booking->update([
+                'DNA' => -1, // Mark interpreter as did not attend
+            ]);
+
+            return response()->json(['message' => 'Interpreter marked as did not attend successfully', 'booking' => $booking], 200);
+
+        } catch (ValidationException $e) {
+            // If validation fails, capture the errors and respond accordingly
+            $errors = $e->errors();
+            return response()->json(['message' => 'Validation Error', 'errors' => $errors], 422);
+        } catch (\Exception $e) {
+            // Handle any other exceptions that may occur
+            return response()->json(['message' => 'An error occurred', 'error' => $e->getMessage()], 500);
+        }
+    }
+   
+}
+
+?>
