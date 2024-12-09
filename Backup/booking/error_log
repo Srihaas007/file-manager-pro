@@ -1,6 +1,0 @@
-[05-Apr-2018 12:14:48 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/client_data.php on line 22
-[13-Apr-2018 19:28:59 Asia/Kolkata] PHP Fatal error:  Call to undefined function clean() in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/fetch_data.php on line 85
-[13-Apr-2018 19:29:59 Asia/Kolkata] PHP Fatal error:  Call to undefined function clean() in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/fetch_data.php on line 170
-[13-Apr-2018 19:30:12 Asia/Kolkata] PHP Fatal error:  Call to undefined function clean() in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/fetch_data.php on line 170
-[13-Apr-2018 19:33:50 Asia/Kolkata] PHP Fatal error:  Call to undefined function clean() in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/fetch_data.php on line 170
-[13-Apr-2018 19:34:03 Asia/Kolkata] PHP Fatal error:  Call to undefined function clean() in /home/webpzgbm/public_html/nav/absolute/secureadmin/booking/fetch_data.php on line 85

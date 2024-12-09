@@ -1,9 +1,0 @@
-[13-Apr-2018 15:26:14 Asia/Kolkata] PHP Warning:  mysqli_fetch_array() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 36
-[13-Apr-2018 15:26:14 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 50
-[13-Apr-2018 15:26:14 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 57
-[13-Apr-2018 15:26:17 Asia/Kolkata] PHP Warning:  mysqli_fetch_array() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 36
-[13-Apr-2018 15:26:17 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 50
-[13-Apr-2018 15:26:17 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 57
-[13-Apr-2018 15:28:10 Asia/Kolkata] PHP Warning:  mysqli_fetch_array() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 36
-[13-Apr-2018 15:28:10 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 50
-[13-Apr-2018 15:28:10 Asia/Kolkata] PHP Warning:  mysqli_num_rows() expects parameter 1 to be mysqli_result, boolean given in /home/webpzgbm/public_html/nav/absolute/secureadmin/image_upload/fetch_image.php on line 57

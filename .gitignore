@@ -114,7 +114,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Environments (duplicate, can remove redundant entries)
+# Environments (duplicate, commented out to avoid redundancy)
 # .env
 # .venv
 # env/
@@ -175,3 +175,7 @@ Thumbs.db
 
 # Ignore cache directories
 .cache/
+
+# Backup and Reports directories
+Backup/
+Reports/
